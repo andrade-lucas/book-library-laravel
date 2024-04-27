@@ -1,0 +1,49 @@
+version: '3.8'
+
+services:
+    app:
+        build:
+            context: .
+            dockerfile: Dockerfile
+        image: laravel_php_fpm
+        container_name: laravel_php_fpm
+        restart: unless-stopped
+        volumes:
+            - .:/var/www
+            - ./php/local.ini:/usr/local/etc/php/conf.d/local.ini
+        networks:
+            - laravel
+
+    web:
+        image: nginx:alpine
+        container_name: laravel_nginx
+        restart: unless-stopped
+        volumes:
+            - .:/var/www
+            - ./nginx/conf.d:/etc/nginx/conf.d:ro
+        ports:
+            - "8087:80"
+        depends_on:
+            - app
+        networks:
+            - laravel
+
+    db:
+        image: mysql:5.7
+        container_name: laravel_mysql
+        restart: unless-stopped
+        environment:
+            MYSQL_DATABASE: laravel
+            MYSQL_USER: user
+            MYSQL_PASSWORD: password
+            MYSQL_ROOT_PASSWORD: rootpassword
+        volumes:
+            - dbdata:/var/lib/mysql
+        networks:
+            - laravel
+
+networks:
+    laravel:
+
+volumes:
+    dbdata:
